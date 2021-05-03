@@ -5,6 +5,8 @@ import (
 
 	"example.org/cpsc416/a5/kvslib"
 	"github.com/DistributedClocks/tracing"
+
+//	"log"
 )
 
 const ChCapacity = 10
@@ -27,11 +29,21 @@ type Client struct {
 }
 
 func NewClient(config ClientConfig, kvs *kvslib.KVS) *Client {
-	return nil
+	t_config := tracing.TracerConfig{config.TracerServerAddr, config.ClientID, config.TracerSecret}
+	c := Client{
+		id: config.ClientID,
+		frontEndAddr: config.FrontEndAddr,
+		kvs: kvs,
+		tracer: tracing.NewTracer(t_config),
+		initialized: false,
+		tracerConfig: t_config}
+	return &c
 }
 
 func (c *Client) Initialize() error {
-	return errors.New("not implemented")
+	c.initialized = true
+	return nil
+	return errors.New("Client Init not implemented")
 }
 
 func (c *Client) Get(clientId string, key string) (uint32, error) {

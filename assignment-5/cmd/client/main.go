@@ -21,6 +21,7 @@ func main() {
 	if err := client.Initialize(); err != nil {
 		log.Fatal(err)
 	}
+	log.Printf("PASS: client Initialize()")
 	defer client.Close()
 
 	if err, _ := client.Get("clientID1", "key1"); err != 0 {
