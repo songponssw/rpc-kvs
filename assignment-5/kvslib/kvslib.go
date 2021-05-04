@@ -6,7 +6,8 @@ import (
 	"errors"
 
 	"github.com/DistributedClocks/tracing"
-	//"net/rpc"
+
+	"net/rpc"
 )
 
 type KvslibBegin struct {
@@ -52,7 +53,9 @@ type ResultStruct struct {
 }
 
 type KVS struct {
-	notifyCh NotifyChannel
+	notifyCh  NotifyChannel
+	rpcClient *rpc.Client
+	OpId      uint32
 	// Add more KVS instance state here.
 }
 
@@ -69,14 +72,24 @@ func NewKVS() *KVS {
 // an appropriate err value, otherwise err should be set to nil.
 func (d *KVS) Initialize(localTracer *tracing.Tracer, clientId string, frontEndAddr string, chCapacity uint) (NotifyChannel, error) {
 	// dial
+	rpcClient, err := rpc.Dial("tcp", "localhost:"+frontEndAddr)
+	if err != nil {
+		return nil, errors.New("Cannot established connection with RPC server.")
+	}
+	d.rpcClient = rpcClient
+	d.OpId = 0
 
-	//
-	return d.notifyCh, errors.New("not implemented")
+	notifyLocal := make(chan ResultStruct, chCapacity)
+	d.notifyCh = notifyLocal
+
+	return d.notifyCh, nil
 }
 
 // Get is a non-blocking request from the client to the system. This call is used by
 // the client when it wants to get value for a key.
 func (d *KVS) Get(tracer *tracing.Tracer, clientId string, key string) (uint32, error) {
+	var reply ResultStruct
+	err = d.rpcClient.Go("", key, &reply, nil)
 	// Should return OpId or error
 	return 0, errors.New("not implemented")
 }
@@ -94,5 +107,6 @@ func (d *KVS) Put(tracer *tracing.Tracer, clientId string, key string, value str
 // with stopping, this should return an appropriate err value, otherwise err
 // should be set to nil.
 func (d *KVS) Close() error {
-	return errors.New("not implemented")
+	err := d.rpcClient.Close()
+	return errors.New(err.Error())
 }
