@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/DistributedClocks/tracing"
+	//"net/rpc"
 )
 
 type KvslibBegin struct {
@@ -67,6 +68,9 @@ func NewKVS() *KVS {
 // notifications. If there is an issue with connecting, this should return
 // an appropriate err value, otherwise err should be set to nil.
 func (d *KVS) Initialize(localTracer *tracing.Tracer, clientId string, frontEndAddr string, chCapacity uint) (NotifyChannel, error) {
+	// dial
+
+	//
 	return d.notifyCh, errors.New("not implemented")
 }
 
