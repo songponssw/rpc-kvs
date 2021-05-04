@@ -35,12 +35,12 @@ func NewClient(config ClientConfig, kvs *kvslib.KVS) *Client {
 	log.Printf("k: %+v\n", k)
 
 	c := Client{
-		//NotifyChannel ????
-		id:           config.ClientID,
-		frontEndAddr: config.FrontEndAddr,
-		tracer:       tracer,
-		initialized:  true,
-		tracerConfig: t_config,
+		NotifyChannel: k,
+		id:            config.ClientID,
+		frontEndAddr:  config.FrontEndAddr,
+		tracer:        tracer,
+		initialized:   true,
+		tracerConfig:  t_config,
 		// InitialKVS()
 		kvs: kvs}
 	// log.Printf("%s",c.id)
