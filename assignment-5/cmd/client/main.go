@@ -28,12 +28,19 @@ func main() {
 	if err, _ := client.Get("clientID1", "key1"); err != 0 {
 		log.Println(err)
 	}
+
+	log.Printf("PASS: client Get")
 	if err, _ := client.Put("clientID1", "key2", "value2"); err != 0 {
 		log.Println(err)
 	}
 
+	log.Printf("PASS: client Put")
+
+	log.Printf("Channel Result")
 	for i := 0; i < 2; i++ {
 		result := <-client.NotifyChannel
 		log.Println(result)
 	}
+
+	client.Close()
 }

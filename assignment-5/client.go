@@ -2,6 +2,7 @@ package distkvs
 
 import (
 	"errors"
+	"log"
 
 	"example.org/cpsc416/a5/kvslib"
 	"github.com/DistributedClocks/tracing"
@@ -37,7 +38,7 @@ func NewClient(config ClientConfig, kvs *kvslib.KVS) *Client {
 		id:            config.ClientID,
 		frontEndAddr:  config.FrontEndAddr,
 		tracer:        tracer,
-		initialized:   true,
+		initialized:   false,
 		tracerConfig:  t_config,
 		kvs:           kvs}
 	// log.Printf("%s",c.id)
@@ -46,11 +47,21 @@ func NewClient(config ClientConfig, kvs *kvslib.KVS) *Client {
 
 func (c *Client) Initialize() error {
 	// Call KVS initialize here
-	notifyCh, _ := c.kvs.Initialize(c.tracer, c.id, c.frontEndAddr, ChCapacity)
+	notifyCh, err := c.kvs.Initialize(c.tracer, c.id, c.frontEndAddr, ChCapacity)
+	if err != nil {
+		return errors.New("kvs initialize error")
+	}
 	c.NotifyChannel = notifyCh
+
+	if err == nil {
+		c.initialized = true
+	}
+
 	if c.initialized == true {
 		return nil
 	}
+	log.Print(err)
+
 	return errors.New("Client Cannot be initialized")
 }
 

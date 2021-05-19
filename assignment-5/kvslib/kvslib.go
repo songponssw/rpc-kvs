@@ -4,6 +4,7 @@ package kvslib
 
 import (
 	"errors"
+	"log"
 
 	"github.com/DistributedClocks/tracing"
 
@@ -56,6 +57,7 @@ type KVS struct {
 	notifyCh  NotifyChannel
 	rpcClient *rpc.Client
 	OpId      uint32
+	ClientId  KvslibBegin
 	// Add more KVS instance state here.
 }
 
@@ -72,12 +74,14 @@ func NewKVS() *KVS {
 // an appropriate err value, otherwise err should be set to nil.
 func (d *KVS) Initialize(localTracer *tracing.Tracer, clientId string, frontEndAddr string, chCapacity uint) (NotifyChannel, error) {
 	// dial
-	rpcClient, err := rpc.Dial("tcp", "localhost:"+frontEndAddr)
+	rpcClient, err := rpc.DialHTTP("tcp", frontEndAddr)
 	if err != nil {
 		return nil, errors.New("Cannot established connection with RPC server.")
 	}
 	d.rpcClient = rpcClient
 	d.OpId = 0
+
+	d.ClientId = KvslibBegin{clientId}
 
 	notifyLocal := make(chan ResultStruct, chCapacity)
 	d.notifyCh = notifyLocal
@@ -88,18 +92,54 @@ func (d *KVS) Initialize(localTracer *tracing.Tracer, clientId string, frontEndA
 // Get is a non-blocking request from the client to the system. This call is used by
 // the client when it wants to get value for a key.
 func (d *KVS) Get(tracer *tracing.Tracer, clientId string, key string) (uint32, error) {
-	var reply ResultStruct
-	err = d.rpcClient.Go("", key, &reply, nil)
+	d.OpId++
+	args := KvslibGet{d.ClientId.ClientId, d.OpId, key}
+	reply := new(ResultStruct) // This shoulbe GetResult Struct???
+
+	funcCall := d.rpcClient.Go("FrontEnd.HandleGet", args, &reply, nil)
+	replyCall := <-funcCall.Done
+
+	// Log result using Trancer???
+	log.Print(*reply.Result)
+	reply.OpId = d.OpId
+	d.notifyCh <- *reply
+	log.Print(d.notifyCh)
+
+	log.Print("added to channel")
+
+	if replyCall.Error != nil {
+		return d.OpId, errors.New("key not found")
+	}
+
 	// Should return OpId or error
-	return 0, errors.New("not implemented")
+	return d.OpId, nil
 }
 
 // Put is a non-blocking request from the client to the system. This call is used by
 // the client when it wants to update the value of an existing key or add add a new
 // key and value pair.
 func (d *KVS) Put(tracer *tracing.Tracer, clientId string, key string, value string) (uint32, error) {
-	// Should return OpId or error
-	return 0, errors.New("not implemented")
+	d.OpId += 1
+	args := KvslibPut{d.ClientId.ClientId, d.OpId, key, value}
+
+	reply := new(ResultStruct)
+	funcCall := d.rpcClient.Go("FrontEnd.HandlePut", args, &reply, nil)
+	replyCall := <-funcCall.Done
+
+	log.Print(*reply.Result)
+
+	reply.OpId = d.OpId
+	d.notifyCh <- *reply
+	log.Print(d.notifyCh)
+
+	//Hanle key not Fond : storage will create the new
+	if replyCall != nil {
+		return d.OpId, errors.New("key not found")
+	}
+
+	d.notifyCh <- *reply
+	//Handle update key
+	return d.OpId, nil
 }
 
 // Close Stops the KVS instance from communicating with the frontend and
@@ -108,5 +148,8 @@ func (d *KVS) Put(tracer *tracing.Tracer, clientId string, key string, value str
 // should be set to nil.
 func (d *KVS) Close() error {
 	err := d.rpcClient.Close()
-	return errors.New(err.Error())
+	if err != nil {
+		return errors.New(err.Error())
+	}
+	return nil
 }
