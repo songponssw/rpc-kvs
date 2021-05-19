@@ -69,8 +69,8 @@ func (c *Client) Get(clientId string, key string) (uint32, error) {
 	return c.kvs.Get(c.tracer, clientId, key)
 }
 
-func (c *Client) Put(clientId string, key string, value string) (uint32, error) {
-	return c.kvs.Put(c.tracer, clientId, key, value)
+func (c *Client) Put(clientId string, key string, value string, delay int) (uint32, error) {
+	return c.kvs.Put(c.tracer, clientId, key, value, delay)
 }
 
 func (c *Client) Close() error {

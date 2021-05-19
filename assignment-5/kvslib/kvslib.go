@@ -20,6 +20,7 @@ type KvslibPut struct {
 	OpId     uint32
 	Key      string
 	Value    string
+	delay    int
 }
 
 type KvslibGet struct {
@@ -100,12 +101,12 @@ func (d *KVS) Get(tracer *tracing.Tracer, clientId string, key string) (uint32, 
 	replyCall := <-funcCall.Done
 
 	// Log result using Trancer???
-	log.Print(*reply.Result)
+	// log.Print(*reply.Result)
 	reply.OpId = d.OpId
 	d.notifyCh <- *reply
-	log.Print(d.notifyCh)
+	// log.Print(d.notifyCh)
 
-	log.Print("added to channel")
+	// log.Print("added to channel")
 
 	if replyCall.Error != nil {
 		return d.OpId, errors.New("key not found")
@@ -118,26 +119,27 @@ func (d *KVS) Get(tracer *tracing.Tracer, clientId string, key string) (uint32, 
 // Put is a non-blocking request from the client to the system. This call is used by
 // the client when it wants to update the value of an existing key or add add a new
 // key and value pair.
-func (d *KVS) Put(tracer *tracing.Tracer, clientId string, key string, value string) (uint32, error) {
+func (d *KVS) Put(tracer *tracing.Tracer, clientId string, key string, value string, delay int) (uint32, error) {
 	d.OpId += 1
-	args := KvslibPut{d.ClientId.ClientId, d.OpId, key, value}
-
+	args := KvslibPut{d.ClientId.ClientId, d.OpId, key, value, delay}
+	log.Print(args.delay)
 	reply := new(ResultStruct)
 	funcCall := d.rpcClient.Go("FrontEnd.HandlePut", args, &reply, nil)
 	replyCall := <-funcCall.Done
 
-	log.Print(*reply.Result)
+	// log.Print(*reply.Result)
 
 	reply.OpId = d.OpId
 	d.notifyCh <- *reply
-	log.Print(d.notifyCh)
+	// log.Print(d.notifyCh)
 
 	//Hanle key not Fond : storage will create the new
-	if replyCall != nil {
+	if replyCall.Error != nil {
 		return d.OpId, errors.New("key not found")
 	}
 
 	d.notifyCh <- *reply
+	log.Printf("add %s to channel", *reply.Result)
 	//Handle update key
 	return d.OpId, nil
 }

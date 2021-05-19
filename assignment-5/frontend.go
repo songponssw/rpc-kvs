@@ -100,13 +100,13 @@ func (f *FrontEnd) HandleGet(args kvslib.KvslibGet, reply *kvslib.ResultStruct) 
 	ret.Result = storageReply.Value
 	*reply = ret
 
-	log.Printf("OpId: %d Get value %s from %s", args.OpId, args.Key, *reply.Result)
+	log.Printf("OpId: %d Get value %s from %s", args.OpId, *reply.Result, args.Key)
 
 	return nil
 }
 
 func (f *FrontEnd) HandlePut(args kvslib.KvslibPut, reply *kvslib.ResultStruct) error {
-	storageArgs := StoragePut{args.Key, args.Value}
+	storageArgs := StoragePut{args.Key, args.Value, 0}
 	storageReply := new(string)
 	funcCall := f.rpcClient.Go("Storage.StoragePut", storageArgs, &storageReply, nil)
 	replyCall := <-funcCall.Done

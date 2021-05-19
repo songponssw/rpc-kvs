@@ -23,6 +23,7 @@ func main() {
 	})
 
 	storage := distkvs.Storage{}
+
 	err = storage.Start(config.FrontEndAddr, string(config.StorageAdd), config.DiskPath, tracer)
 	if err != nil {
 		log.Fatal(err)
