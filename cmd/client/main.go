@@ -21,13 +21,13 @@ func main() {
 	flag.StringVar(&config.ClientID, "id", config.ClientID, "Client ID, e.g. client1")
 	flag.Parse()
 
-	// SimpleEdit()
+	SimpleEdit()
 
-	// GetAll()
+	GetAll()
 
 	// DelayPut()
 
-	MonotonicRead()
+	// MonotonicRead()
 
 	// client := distkvs.NewClient(config, kvslib.NewKVS())
 	// if err := client.Initialize(); err != nil {
@@ -100,7 +100,7 @@ func SimpleEdit() {
 		client.Put("clientID1", k, v, 0)
 	}
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 5; i++ {
 		result := <-client.NotifyChannel
 		log.Printf("Put Key %d => %s", i, *result.Result)
 	}
@@ -171,17 +171,10 @@ func MonotonicRead() {
 		log.Fatal(err)
 	}
 
+	client1.Get("clientID1", "k99")
 	go client2.Put("client2", "k99", "Update", 0)
 	client1.Get("clientID1", "k99")
-	time.Sleep(1 * time.Second)
-	client1.Get("clientID1", "k99")
-	time.Sleep(1 * time.Second)
-	client1.Get("clientID1", "k99")
-	time.Sleep(1 * time.Second)
-	client1.Get("clientID1", "k99")
-	time.Sleep(1 * time.Second)
-	client1.Get("clientID1", "k99")
-	time.Sleep(1 * time.Second)
+	time.Sleep(8 * time.Second)
 
 	fmt.Print("enddd")
 	l := len(client1.NotifyChannel)

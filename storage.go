@@ -109,8 +109,8 @@ func (*Storage) StoragePut(args StoragePut, reply *string) error {
 		s = "key not found"
 	} else {
 		if args.Key == "k99" {
-			log.Print("delay for 10 second")
-			time.Sleep(10 * time.Second)
+			log.Print("delay for 5 second")
+			time.Sleep(5 * time.Second)
 		}
 		database[args.Key] = args.Value
 		s = "Success"
