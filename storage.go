@@ -60,11 +60,52 @@ func (*Storage) Start(frontEndAddr string, storageAddr string, diskPath string, 
 
 	rpc.HandleHTTP()
 
-	for i := 0; i < 10; i++ {
-		ks := "k" + strconv.Itoa(i)
-		vs := "v" + strconv.Itoa(i)
-		database[ks] = vs
+	if _, err := os.Stat("mem"); os.IsNotExist(err) {
+		_, err := os.Create("test.txt")
+		if err != nil {
+			panic(err)
+		}
 	}
+	data := make([]byte, 100000)
+	file, err := os.Open("mem")
+	if err != nil {
+		log.Println(err)
+	}
+	count, err := file.Read(data)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var key string
+	var val string
+	i := 0
+	s := 0
+
+	for i < count {
+		if s == 1 {
+			if data[i] == '\n' {
+				s = 0
+				database[key] = val
+				key = ""
+				val = ""
+			} else {
+				val := val + data[i]
+			}
+		}
+		if s == 0 {
+			if data[i] == ';' {
+				s++
+			} else {
+				key := key + data[i]
+			}
+		}
+		i++
+	}
+
+	if s != 0 {
+		database[key] = val
+	}
+
 	database["k99"] = "delay"
 	// log.Print(database["key1"])
 	PrintDB()
