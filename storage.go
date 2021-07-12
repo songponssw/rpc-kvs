@@ -6,9 +6,8 @@ import (
 	"net"
 	"net/http"
 	"net/rpc"
+	"os"
 	"time"
-
-	"strconv"
 
 	"github.com/DistributedClocks/tracing"
 )
@@ -85,25 +84,26 @@ func (*Storage) Start(frontEndAddr string, storageAddr string, diskPath string, 
 		if s == 1 {
 			if data[i] == '\n' {
 				s = 0
-				database[key] = val
+				database["k"+key] = "v" + val
 				key = ""
 				val = ""
+				i++
 			} else {
-				val := val + data[i]
+				val = val + string(data[i])
 			}
 		}
 		if s == 0 {
 			if data[i] == ';' {
 				s++
 			} else {
-				key := key + data[i]
+				key = key + string(data[i])
 			}
 		}
 		i++
 	}
 
 	if s != 0 {
-		database[key] = val
+		database["k"+key] = "v" + val
 	}
 
 	database["k99"] = "delay"
@@ -115,7 +115,7 @@ func (*Storage) Start(frontEndAddr string, storageAddr string, diskPath string, 
 		log.Fatal("listen error:", e)
 	}
 
-	err := http.Serve(l, nil)
+	err = http.Serve(l, nil)
 	if err != nil {
 		log.Fatal("listen error:", err)
 	}
