@@ -84,7 +84,7 @@ func (*Storage) Start(frontEndAddr string, storageAddr string, diskPath string, 
 		if s == 1 {
 			if data[i] == '\n' {
 				s = 0
-				database["k"+key] = "v" + val
+				database[key] = val
 				key = ""
 				val = ""
 				i++
@@ -103,7 +103,7 @@ func (*Storage) Start(frontEndAddr string, storageAddr string, diskPath string, 
 	}
 
 	if s != 0 {
-		database["k"+key] = "v" + val
+		database[key] = val
 	}
 
 	database["k99"] = "delay"
@@ -144,14 +144,31 @@ func (*Storage) StorageGet(args StorageGet, reply *StorageGetResult) error {
 
 func (*Storage) StoragePut(args StoragePut, reply *string) error {
 	log.Printf("Put value %s to %s", args.Value, args.Key)
-	s := ""
+	s := "success"
 
 	if args.Key == "k99" {
 		log.Print("delay for 5 second")
 		time.Sleep(5 * time.Second)
+	} else {
+		database[args.Key] = args.Value
+
+		if _, err := os.Stat("mem"); os.IsNotExist(err) {
+			_, err := os.Create("mem")
+			if err != nil {
+				panic(err)
+			}
+		}
+		file, err := os.OpenFile("mem", os.O_APPEND|os.O_WRONLY, 0644)
+		if err != nil {
+			log.Println(err)
+			s = "cannot open file"
+		}
+		defer file.Close()
+		if _, err := file.WriteString(args.Key + ";" + args.Value); err != nil {
+			log.Fatal(err)
+			s = "cannot write"
+		}
 	}
-	database[args.Key] = args.Value
-	s = "Success"
 
 	// sPtr := new(string)
 	// sPtr = &s
