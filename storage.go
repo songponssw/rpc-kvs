@@ -60,7 +60,7 @@ func (*Storage) Start(frontEndAddr string, storageAddr string, diskPath string, 
 	rpc.HandleHTTP()
 
 	if _, err := os.Stat("mem"); os.IsNotExist(err) {
-		_, err := os.Create("test.txt")
+		_, err := os.Create("mem")
 		if err != nil {
 			panic(err)
 		}
@@ -127,7 +127,7 @@ func (*Storage) StorageGet(args StorageGet, reply *StorageGetResult) error {
 	ret := StorageGetResult{}
 	s := ""
 	_, prs := database[args.Key]
-	if prs == false {
+	if !prs {
 		s = "key not found"
 	} else {
 		s = database[args.Key]
@@ -145,17 +145,13 @@ func (*Storage) StorageGet(args StorageGet, reply *StorageGetResult) error {
 func (*Storage) StoragePut(args StoragePut, reply *string) error {
 	log.Printf("Put value %s to %s", args.Value, args.Key)
 	s := ""
-	_, prs := database[args.Key]
-	if prs == false {
-		s = "key not found"
-	} else {
-		if args.Key == "k99" {
-			log.Print("delay for 5 second")
-			time.Sleep(5 * time.Second)
-		}
-		database[args.Key] = args.Value
-		s = "Success"
+
+	if args.Key == "k99" {
+		log.Print("delay for 5 second")
+		time.Sleep(5 * time.Second)
 	}
+	database[args.Key] = args.Value
+	s = "Success"
 
 	// sPtr := new(string)
 	// sPtr = &s
