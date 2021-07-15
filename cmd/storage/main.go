@@ -106,9 +106,9 @@ func (*Storage) StorageGet(args StorageGet, reply *StorageGetResult) error {
 	s := "key not found"
 
 	count, err := file.Read(data)
-	if err != io.EOF {
+	if err != nil && err != io.EOF {
 		log.Fatal(err)
-	} else if err == nil {
+	} else {
 		k := ""
 		v := ""
 		i := 0
@@ -117,19 +117,20 @@ func (*Storage) StorageGet(args StorageGet, reply *StorageGetResult) error {
 		for i < count {
 			if state == 0 {
 				if data[i] == ';' {
+					log.Println(k)
 					if k == args.Key {
 						state = 1
 						v = ""
 					} else {
 						state = 2
 					}
+					k = ""
 				} else {
 					k = k + string(data[i])
 				}
 			} else if state == 1 {
 				if data[i] == '\n' {
 					state = 0
-					i++
 					s = v
 				} else {
 					v = v + string(data[i])
@@ -137,7 +138,6 @@ func (*Storage) StorageGet(args StorageGet, reply *StorageGetResult) error {
 			} else if state == 2 {
 				if data[i] == '\n' {
 					state = 0
-					i++
 				}
 			}
 			i++
@@ -171,7 +171,7 @@ func (*Storage) StoragePut(args StoragePut, reply *string) error {
 			s = "cannot open file"
 		}
 		defer file.Close()
-		if _, err := file.WriteString(args.Key + ";" + args.Value); err != nil {
+		if _, err := file.WriteString(args.Key + ";" + args.Value + "\n"); err != nil {
 			log.Fatal(err)
 			s = "cannot write"
 		}
