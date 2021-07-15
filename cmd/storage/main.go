@@ -120,6 +120,8 @@ func (*Storage) StorageGet(args StorageGet, reply *StorageGetResult) error {
 					if k == args.Key {
 						state = 1
 						v = ""
+					} else {
+						state = 2
 					}
 				} else {
 					k = k + string(data[i])
@@ -131,6 +133,11 @@ func (*Storage) StorageGet(args StorageGet, reply *StorageGetResult) error {
 					s = v
 				} else {
 					v = v + string(data[i])
+				}
+			} else if state == 2 {
+				if data[i] == '\n' {
+					state = 0
+					i++
 				}
 			}
 			i++
