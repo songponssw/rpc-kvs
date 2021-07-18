@@ -13,8 +13,7 @@ spec:
     spec:
       containers:
         - name: storage
-          # TODO: change to storage image
-          image: nginx
+          image: docker.io/kofeebrian/kvs-storage:k8s
           resources:
             limits:
               memory: "128Mi"

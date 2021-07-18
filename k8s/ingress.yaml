@@ -15,7 +15,9 @@ spec:
     - host: kvs.pomelo.net
       http:
         paths:
-          - backend:
+          - path: /
+            pathType: Prefix
+            backend:
               service:
                 name: fe-get-svc
                 port:

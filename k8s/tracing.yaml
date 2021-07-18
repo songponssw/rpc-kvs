@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
         - name: tracing-server
-          image: nginx
+          image: docker.io/kofeebrian/kvs-tracing-server:k8s
           resources:
             limits:
               memory: "128Mi"

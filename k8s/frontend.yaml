@@ -13,8 +13,7 @@ spec:
     spec:
       containers:
         - name: frontend-get
-          # TODO: change to fronend image
-          image: nginx
+          image: docker.io/kofeebrian/kvs-frontend:k8s
           imagePullPolicy: Never
           resources:
             limits:
