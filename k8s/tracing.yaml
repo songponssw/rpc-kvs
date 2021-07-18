@@ -14,14 +14,15 @@ spec:
       containers:
         - name: tracing-server
           image: docker.io/kofeebrian/kvs-tracing-server:k8s
+          imagePullPolicy: Never
           resources:
             limits:
               memory: "128Mi"
-              cpu: "500m"
+              cpu: "100m"
           ports:
             - containerPort: 6666
           volumeMounts:
-            - mountPath: /
+            - mountPath: /mount
               name: tracer-log
       volumes:
         - name: tracer-log

@@ -3,8 +3,7 @@ kind: Ingress
 metadata:
   annotations:
     kubernetes.io/ingress.class: "nginx"
-    nginx.ingress.kubernetes.io/ssl-redirect: "ture"
-    nginx.ingress.kubernetes.io/backend-protocal: "GRPC"
+    nginx.ingress.kubernetes.io/rewrite-target: /
   name: kvs-ingress
   namespace: default
   labels:
@@ -12,8 +11,7 @@ metadata:
 spec:
   rules:
     # TODO: seperate endpoints for each get and put request
-    - host: kvs.pomelo.net
-      http:
+    - http:
         paths:
           - path: /
             pathType: Prefix

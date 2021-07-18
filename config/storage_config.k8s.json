@@ -2,7 +2,7 @@
 	"StorageID": "storage1",
 	"StorageAdd": ":8011",
 	"FrontEndAddr": ":8001",
-	"TracerServerAddr": "trc-svc.svc.cluster.local",
+	"TracerServerAddr": "trc-svc.default.svc.cluster.local:80",
 	"TracerSecret": "",
 	"DiskPath": "/rpc-kvs/data"
 }
