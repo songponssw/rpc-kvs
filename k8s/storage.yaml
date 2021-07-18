@@ -23,7 +23,12 @@ spec:
           volumeMounts:
             - mountPath: /rpc-kvs/data
               name: kvs-storage
+            - mountPath: /config
+              name: storage-config
       volumes:
         - name: kvs-storage
           hostPath:
             path: /rpc-kvs/data
+        - name: storage-config
+          configMap:
+            name: storage-config

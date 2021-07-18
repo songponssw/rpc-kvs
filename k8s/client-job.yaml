@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: client-job
+spec:
+  parallelism: 5
+  ttlSecondsAfterFinished: 100
+  template:
+    spec:
+      containers:
+        - name: client-container
+          image: docker.io/kofeebrian/kvs-client:k8s
+          volumeMounts:
+            - mountPath: /config
+              name: client-config
+      restartPolicy: OnFailure
+      volumes:
+        - name: client-config
+          configMap:
+            name: client-config

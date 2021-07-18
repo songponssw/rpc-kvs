@@ -18,6 +18,13 @@ spec:
           resources:
             limits:
               memory: "128Mi"
-              cpu: "500m"
+              cpu: "100m"
           ports:
             - containerPort: 8000
+          volumeMounts:
+            - mountPath: /config
+              name: frontend-config
+      volumes:
+        - name: frontend-config
+          configMap:
+            name: frontend-config

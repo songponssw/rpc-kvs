@@ -14,3 +14,10 @@ spec:
           cpu: "100m"
       ports:
         - containerPort: 8000
+      volumeMounts:
+        - mountPath: /config
+          name: client-config
+  volumes:
+    - name: client-config
+      configMap:
+        name: client-config
