@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tracing-server
+spec:
+  selector:
+    matchLabels:
+      app: trc
+  template:
+    metadata:
+      labels:
+        app: trc
+    spec:
+      containers:
+        - name: tracing-server
+          image: nginx
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 6666
+          volumeMounts:
+            - mountPath: /
+              name: tracer-log
+      volumes:
+        - name: tracer-log
+          emptyDir: {}

@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: storage
+spec:
+  selector:
+    matchLabels:
+      app: st
+  template:
+    metadata:
+      labels:
+        app: st
+    spec:
+      containers:
+        - name: storage
+          # TODO: change to storage image
+          image: nginx
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 8001
+          volumeMounts:
+            - mountPath: /rpc-kvs/data
+              name: kvs-storage
+      volumes:
+        - name: kvs-storage
+          hostPath:
+            path: /rpc-kvs/data

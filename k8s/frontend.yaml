@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-get
+spec:
+  selector:
+    matchLabels:
+      app: fe-get
+  template:
+    metadata:
+      labels:
+        app: fe-get
+    spec:
+      containers:
+        - name: frontend-get
+          # TODO: change to fronend image
+          image: nginx
+          imagePullPolicy: Never
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 8000
