@@ -8,11 +8,8 @@ RUN go build -o /go/bin/app -v cmd/storage/main.go
 
 #final stage
 FROM alpine:latest
-ARG config="storage_config.json"
-ENV CONFIG=${config}
 RUN apk --no-cache add ca-certificates
 COPY --from=builder /go/bin/app /app
-COPY --from=builder /go/src/app/config/${CONFIG} /config/storage_config.json
 RUN ["chmod", "+x", "/app"]
 ENTRYPOINT /app
 LABEL Name=storage Version=0.0.1
