@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	var config distkvs.StorageConfig
+	var config StorageConfig
 	err := distkvs.ReadJSONConfig("config/storage_config.json", &config)
 	if err != nil {
 		log.Fatal(err)
@@ -30,14 +30,14 @@ func main() {
 	}
 }
 
+type StorageAddr string
+
 type StorageConfig struct {
-	StorageID        string
-	StorageAdd       distkvs.StorageAddr
-	ListenAddr       string
-	FrontEndAddr     string
-	DiskPath         string
-	TracerServerAddr string
-	TracerSecret     []byte
+	StorageID    string
+	StorageAdd   StorageAddr
+	ListenAddr   string
+	FrontEndAddr string
+	DiskPath     string
 }
 
 type StorageLoadSuccess struct {
