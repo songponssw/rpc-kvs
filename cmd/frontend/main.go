@@ -55,7 +55,7 @@ type FrontEnd struct {
 }
 
 func main() {
-	var config distkvs.FrontEndConfig
+	var config FrontEndConfig
 	err := distkvs.ReadJSONConfig("config/frontend_config.json", &config)
 	if err != nil {
 		log.Fatal(err)
