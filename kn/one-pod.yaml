@@ -1,45 +1,76 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kvs-config
+data:
+  client_config.json: |
+    {
+        "ClientID": "client1",
+        "FrontEndAddr": ":8000",
+        "TracerServerAddr": ":6666",
+        "TracerSecret": ""
+    }
+  frontend_config.json: |
+    {
+        "ClientAPIListenAddr": ":8000",
+        "StorageAPIListenAddr": ":8001",
+        "TracerServerAddr": ":6666",
+        "TracerSecret": ""
+    }
+  storage_config.json: |
+    {
+      "StorageID": "storage1",
+      "StorageAdd": ":8011",
+      "FrontEndAddr": ":8001",
+      "TracerServerAddr": ":6666",
+      "TracerSecret": "",
+      "DiskPath": "/rpc-kvs/data"
+    }
+  tracing_server_config.json: |
+    {
+        "ServerBind": ":6666",
+        "Secret": "",
+        "OutputFile": "trace_output.log",
+        "ShivizOutputFile": "shiviz_output.log"
+    }
+---
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: kvs-app
+  name: app
 spec:
-  selector:
-    matchLabels:
-      app: kvs-app
   template:
     metadata:
-      labels:
-        app: kvs-app
+      name: app-kvs
     spec:
       containers:
         - name: kvs-tracing-server
-          image: kofeebrian/kvs-tracing-server:k8s
+          image: docker.io/kofeebrian/kvs-tracing-server:k8s
+          imagePullPolicy: IfNotPresent
           resources:
             limits:
               memory: "128Mi"
               cpu: "100m"
-          ports:
-            - containerPort: 6666
           volumeMounts:
             - mountPath: /config
               subPath: tracing_server_config.json
               name: kvs-config
               readOnly: true
         - name: kvs-storage
-          image: kofeebrian/kvs-storage:k8s
+          image: docker.io/kofeebrian/kvs-storage:k8s
+          imagePullPolicy: IfNotPresent
           resources:
             limits:
               memory: "128Mi"
               cpu: "100m"
-          ports:
-            - containerPort: 8001
           volumeMounts:
             - mountPath: /config
               subPath: storage_config.json
               name: kvs-config
               readOnly: true
         - name: kvs-frontend
-          image: kofeebrian/kvs-frontend:k8s
+          image: docker.io/kofeebrian/kvs-frontend:k8s
+          imagePullPolicy: IfNotPresent
           resources:
             limits:
               memory: "128Mi"
@@ -56,38 +87,4 @@ spec:
           configMap:
             name: kvs-config
 ---
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: kvs-config
-data:
-  client_config.json: |
-    {
-      "ClientID": "client1",
-      "FrontEndAddr": "fe-get-svc.default.svc.cluster.local:80",
-      "TracerServerAddr": "trc-svc.default.svc.cluster.local:80",
-      "TracerSecret": ""
-    }
-  frontend_config.json: |
-    {
-      "ClientAPIListenAddr": ":8000",
-      "StorageAPIListenAddr": "st-svc.default.svc.cluster.local:80",
-      "TracerServerAddr": "trc-svc.default.svc.cluster.local:80",
-      "TracerSecret": ""
-    }
-  storage_config.json: |
-    {
-      "StorageID": "storage1",
-      "StorageAdd": ":8011",
-      "FrontEndAddr": ":8001",
-      "TracerServerAddr": "trc-svc.default.svc.cluster.local:80",
-      "TracerSecret": "",
-      "DiskPath": "/rpc-kvs/data"
-    }
-  tracing_server_config.json: |
-    {
-        "ServerBind": ":6666",
-        "Secret": "",
-        "OutputFile": "trace_output.log",
-        "ShivizOutputFile": "shiviz_output.log"
-    }
+
