@@ -6,8 +6,6 @@ import (
 	"errors"
 	"log"
 
-	"github.com/DistributedClocks/tracing"
-
 	"net/rpc"
 )
 
@@ -73,7 +71,7 @@ func NewKVS() *KVS {
 // have capacity ChCapacity and must be used by kvslib to deliver all solution
 // notifications. If there is an issue with connecting, this should return
 // an appropriate err value, otherwise err should be set to nil.
-func (d *KVS) Initialize(localTracer *tracing.Tracer, clientId string, frontEndAddr string, chCapacity uint) (NotifyChannel, error) {
+func (d *KVS) Initialize(clientId string, frontEndAddr string, chCapacity uint) (NotifyChannel, error) {
 	// dial
 	rpcClient, err := rpc.DialHTTP("tcp", frontEndAddr)
 	if err != nil {
@@ -92,7 +90,7 @@ func (d *KVS) Initialize(localTracer *tracing.Tracer, clientId string, frontEndA
 
 // Get is a non-blocking request from the client to the system. This call is used by
 // the client when it wants to get value for a key.
-func (d *KVS) Get(tracer *tracing.Tracer, clientId string, key string) (uint32, error) {
+func (d *KVS) Get(clientId string, key string) (uint32, error) {
 	d.OpId++
 	args := KvslibGet{d.ClientId.ClientId, d.OpId, key}
 	reply := new(ResultStruct) // This shoulbe GetResult Struct???
@@ -119,7 +117,7 @@ func (d *KVS) Get(tracer *tracing.Tracer, clientId string, key string) (uint32, 
 // Put is a non-blocking request from the client to the system. This call is used by
 // the client when it wants to update the value of an existing key or add add a new
 // key and value pair.
-func (d *KVS) Put(tracer *tracing.Tracer, clientId string, key string, value string, delay int) (uint32, error) {
+func (d *KVS) Put(clientId string, key string, value string, delay int) (uint32, error) {
 	d.OpId += 1
 	args := KvslibPut{d.ClientId.ClientId, d.OpId, key, value, delay}
 	log.Print(args.delay)
