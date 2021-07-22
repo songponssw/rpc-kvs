@@ -8,7 +8,9 @@ data:
   client_config.json: |
     {
       "ClientID": "client1",
-      "FrontEndAddr": "kvs.default.svc.cluster.local:80"
+      "FrontEndAddr": "fe-get-svc.default.svc.cluster.local:80",
+      "TracerServerAddr": "trc-svc.default.svc.cluster.local:80",
+      "TracerSecret": ""
     }
 ---
 apiVersion: v1
@@ -19,7 +21,9 @@ data:
   frontend_config.json: |
     {
       "ClientAPIListenAddr": ":8000",
-      "StorageAPIListenAddr": "st-svc.default.svc.cluster.local:80"
+      "StorageAPIListenAddr": "st-svc.default.svc.cluster.local:80",
+      "TracerServerAddr": "trc-svc.default.svc.cluster.local:80",
+      "TracerSecret": ""
     }
 ---
 apiVersion: v1
@@ -32,6 +36,8 @@ data:
       "StorageID": "storage1",
       "StorageAdd": ":8011",
       "FrontEndAddr": ":8001",
+      "TracerServerAddr": "trc-svc.default.svc.cluster.local:80",
+      "TracerSecret": "",
       "DiskPath": "/rpc-kvs/data"
     }
 ---

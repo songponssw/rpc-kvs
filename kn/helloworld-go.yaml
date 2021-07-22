@@ -1,0 +1,20 @@
+apiVersion: serving.knative.dev/v1 # Current version of Knative
+kind: Service
+metadata:
+  name: helloworld-go # The name of the app
+  namespace: default # The namespace the app will use
+spec:
+  template:
+    spec:
+      containers:
+        - image: crccheck/hello-world:latest # Stub image
+          ports:
+            - name: h2c
+              containerPort: 50051
+          env:
+            - name: TARGET # The environment variable printed out by the sample app
+              value: "Go Sample v1"
+            - name: GUEST_PORT
+              value: "50051"
+            - name: GUEST_IMAGE
+              value: "kofeebrian/helloworld-go:ex" # tag ex = expose port 50051 in dockerfile

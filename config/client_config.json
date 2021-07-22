@@ -1,6 +1,6 @@
 {
   "ClientID": "client1",
-  "FrontEndAddr": ":8000",
+  "FrontEndAddr": "helloworld-0.default.172.16.1.240.sslip.io:80",
   "TracerServerAddr": ":6666",
   "TracerSecret": ""
 }

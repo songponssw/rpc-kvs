@@ -1,0 +1,27 @@
+apiVersion: serving.knative.dev/v1 # Current version of Knative
+kind: Service
+metadata:
+  name: kvs # The name of the app
+  namespace: default # The namespace the app will use
+spec:
+  template:
+    metadata:
+      name: kvs-monolith
+    spec:
+      containers:
+        - image: crccheck/hello-world:latest # Stub image
+          ports:
+            - name: h2c # http2
+              containerPort: 50051
+          env:
+            - name: GUEST_PORT
+              value: "50051"
+            - name: GUEST_IMAGE
+              value: "docker.io/kofeebrian/kvs:0.0.3-monolith" # frontend + storage
+      #     volumeMounts:
+      #       - mountPath: /config
+      #         name: kvs-config
+      # volumes:
+      #   - name: kvs-config
+      #     configMap:
+      #       name: kvs-config

@@ -77,7 +77,8 @@ func (d *KVS) Initialize(localTracer *tracing.Tracer, clientId string, frontEndA
 	// dial
 	rpcClient, err := rpc.DialHTTP("tcp", frontEndAddr)
 	if err != nil {
-		return nil, errors.New("Cannot established connection with RPC server.")
+		// return nil, errors.New("Cannot established connection with RPC server.")
+		return nil, err
 	}
 	d.rpcClient = rpcClient
 	d.OpId = 0

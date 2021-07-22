@@ -49,17 +49,17 @@ func (c *Client) Initialize() error {
 	// Call KVS initialize here
 	notifyCh, err := c.kvs.Initialize(c.tracer, c.id, c.frontEndAddr, ChCapacity)
 	if err != nil {
-		return errors.New("kvs initialize error")
+		// return errors.New("kvs initialize error")
+		return err
 	}
 	c.NotifyChannel = notifyCh
 
-	if err == nil {
-		c.initialized = true
-	}
-
-	if c.initialized == true {
+	if err != nil {
 		return nil
 	}
+
+	c.initialized = true
+
 	log.Print(err)
 
 	return errors.New("Client Cannot be initialized")
