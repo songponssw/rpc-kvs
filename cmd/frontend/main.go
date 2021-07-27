@@ -102,6 +102,7 @@ func (f *FrontEnd) Start(clientAPIListenAddr string, storageAPIListenAddr string
 }
 
 func (f *FrontEnd) HandleGet(args kvslib.KvslibGet, reply *kvslib.ResultStruct) error {
+	log.Print("Fuck frontend")
 	storageArgs := StorageGet{args.Key}
 	storageReply := new(StorageGetResult)
 	funcCall := f.rpcClient.Go("Storage.StorageGet", storageArgs, &storageReply, nil)

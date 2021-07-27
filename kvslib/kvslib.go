@@ -18,7 +18,7 @@ type KvslibPut struct {
 	OpId     uint32
 	Key      string
 	Value    string
-	delay    int
+	Delay    int
 }
 
 type KvslibGet struct {
@@ -95,7 +95,7 @@ func (d *KVS) Get(clientId string, key string) (uint32, error) {
 	args := KvslibGet{d.ClientId.ClientId, d.OpId, key}
 	reply := new(ResultStruct) // This shoulbe GetResult Struct???
 
-	funcCall := d.rpcClient.Go("FrontEnd.HandleGet", args, &reply, nil)
+	funcCall := d.rpcClient.Go("ClientInterface.Get", args, &reply, nil)
 	replyCall := <-funcCall.Done
 
 	// Log result using Trancer???
@@ -120,9 +120,9 @@ func (d *KVS) Get(clientId string, key string) (uint32, error) {
 func (d *KVS) Put(clientId string, key string, value string, delay int) (uint32, error) {
 	d.OpId += 1
 	args := KvslibPut{d.ClientId.ClientId, d.OpId, key, value, delay}
-	log.Print(args.delay)
+	log.Print(args.Delay)
 	reply := new(ResultStruct)
-	funcCall := d.rpcClient.Go("FrontEnd.HandlePut", args, &reply, nil)
+	funcCall := d.rpcClient.Go("ClientInterface.Put", args, &reply, nil)
 	replyCall := <-funcCall.Done
 
 	// log.Print(*reply.Result)
