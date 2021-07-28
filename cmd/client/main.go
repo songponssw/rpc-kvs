@@ -23,7 +23,7 @@ func main() {
 
 	SimpleEdit()
 
-	GetAll()
+	// GetAll()
 
 	// DelayPut()
 

@@ -13,10 +13,11 @@ import (
 	"example.org/cpsc416/a5/kvslib"
 	"example.org/cpsc416/a5/pb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 )
 
 type ClientInterface struct {
-	grpcConn *grpc.ClientConn
+	grpcClientConn *grpc.ClientConn
 }
 
 func main() {
@@ -31,7 +32,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 }
 
 
@@ -42,37 +42,45 @@ func (c *ClientInterface) Start(clientListenAddr string, frontendAPIAddr string)
 	rpc.HandleHTTP()
 
 	// connect to grpc 
-	conn, err := grpc.Dial(frontendAPIAddr, grpc.WithInsecure())
+	conn, err := grpc.Dial(frontendAPIAddr, grpc.WithInsecure(), grpc.WithKeepaliveParams(keepalive.ClientParameters{
+		Timeout: 5 * time.Second,
+		PermitWithoutStream: true,
+	}))
 	if err != nil {
 		return errors.New("connect with grpc server failed")
 	}
 
-	c.grpcConn = conn
+	c.grpcClientConn = conn
 
 	lis, err := net.Listen("tcp", clientListenAddr)
 	if err != nil {
-		log.Fatal("listen failed: ", err)
+		log.Fatal("listen failed:", err)
+		return err
 	}
 
-	log.Println("Serving on ", clientListenAddr)
+	log.Println("Serving on", clientListenAddr)
 	err = http.Serve(lis, nil)
 	if err != nil {
-		log.Fatal("serving falied: ", err)
+		log.Fatal("serving falied:", err)
+		return err
 	}
 
 	return errors.New("client fail")
 }
 
 func (c *ClientInterface) Get(args kvslib.KvslibGet, reply *kvslib.ResultStruct) error {
-	client := pb.NewFrontendClient(c.grpcConn)
 	req := &pb.FrontendGetRequest{
-		ClientId: args.ClientId,
-		OpId: args.OpId,
-		Key: args.Key,
+		ClientId: "sdklfjlsdkfj",
+		OpId: 44,
+		Key: "sdfjhdjfhsdfAAA",
 	}
+
+	log.Println(c.grpcClientConn)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
+
+	client := pb.NewFrontendClient(c.grpcClientConn)
 
 	res, err := client.HandleGet(ctx, req)
 	if err != nil {
@@ -91,7 +99,6 @@ func (c *ClientInterface) Get(args kvslib.KvslibGet, reply *kvslib.ResultStruct)
 }
 
 func (c *ClientInterface) Put(args kvslib.KvslibPut, reply *kvslib.ResultStruct) error {
-	client := pb.NewFrontendClient(c.grpcConn)
 	req := &pb.FrontendPutRequest{
 		ClientId: args.ClientId,
 		OpId: args.OpId,
@@ -102,6 +109,8 @@ func (c *ClientInterface) Put(args kvslib.KvslibPut, reply *kvslib.ResultStruct)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
+
+	client := pb.NewFrontendClient(c.grpcClientConn)
 
 	res, err := client.HandlePut(ctx, req)
 	if err != nil {

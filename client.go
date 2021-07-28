@@ -40,20 +40,19 @@ func (c *Client) Initialize() error {
 	// Call KVS initialize here
 	notifyCh, err := c.kvs.Initialize(c.id, c.frontEndAddr, ChCapacity)
 	if err != nil {
-		return errors.New("kvs initialize error")
+		return err
+		// return errors.New("kvs initialize error")
 	}
 	c.NotifyChannel = notifyCh
 
-	if err == nil {
-		c.initialized = true
+	if err != nil {
+		log.Fatal(err)
+		return errors.New("Client Cannot be initialized")
 	}
+	
+	c.initialized = true
 
-	if c.initialized == true {
-		return nil
-	}
-	log.Print(err)
-
-	return errors.New("Client Cannot be initialized")
+	return nil
 }
 
 func (c *Client) Get(clientId string, key string) (uint32, error) {

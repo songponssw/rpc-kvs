@@ -11,6 +11,7 @@ import (
 	"example.org/cpsc416/a5/kvslib"
 	"example.org/cpsc416/a5/pb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 )
 
 type FrontendInterface struct {
@@ -33,7 +34,7 @@ func (f *FrontendInterface) Start(frontendAddr string) error {
 	// start new grpc server
 	server := new(FrontendInterface)
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.KeepaliveParams(keepalive.ServerParameters{}))
 
 	pb.RegisterFrontendServer(grpcServer, server)
 
@@ -59,6 +60,7 @@ func (f *FrontendInterface) Start(frontendAddr string) error {
 }
 
 func (f *FrontendInterface) HandleGet(ctx context.Context, req *pb.FrontendGetRequest) (*pb.FrontendGetReponse, error) {
+	log.Println("Hello from frontend interface")
 	// Convert from grpc request to rpc request
 	args := kvslib.KvslibGet{
 		ClientId: req.ClientId,
@@ -73,7 +75,7 @@ func (f *FrontendInterface) HandleGet(ctx context.Context, req *pb.FrontendGetRe
 	replyCall := <- funcCall.Done
 
 	if replyCall.Error != nil {
-		return &pb.FrontendGetReponse{}, errors.New("key not found")
+		return nil, errors.New("key not found")
 	}
 
 	// Return nil if error

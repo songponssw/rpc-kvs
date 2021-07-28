@@ -1,4 +1,4 @@
 {
-	"ClientID": "client2",
-	"FrontEndAddr": ":8080"
+	"ClientID": "client1",
+	"FrontEndAddr": "frontend-grpc.default.172.16.1.240.sslip.io"
 }
