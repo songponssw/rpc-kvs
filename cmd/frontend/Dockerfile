@@ -14,4 +14,4 @@ COPY --from=builder /go/src/app/config /config
 RUN ["chmod", "+x", "/app"]
 ENTRYPOINT /app
 LABEL Name=frontend Version=0.0.1
-EXPOSE 8000
+EXPOSE 50051

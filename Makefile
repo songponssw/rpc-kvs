@@ -21,12 +21,14 @@ clean:
 	rm storage frontend client mem || true
 
 images: 
-	# build storage image
-	docker build -t kofeebrian/kvs-grpc-storage:${tag} -f cmd/storage/Dockerfile .
-	# build frontend image
-	docker build -t kofeebrian/kvs-grpc-frontend:${tag} -f cmd/frontend/Dockerfile .
-	# build client image
-	docker build -t kofeebrian/kvs-grpc-client:${tag} -f cmd/client/Dockerfile .
+	docker build -t kofeebrian/grpc-kvs-storage:${tag} -f cmd/storage/Dockerfile . & 
+	docker build -t kofeebrian/grpc-kvs-frontend:${tag} -f cmd/frontend/Dockerfile . &
+	docker build -t kofeebrian/grpc-kvs-client:${tag} -f cmd/client/Dockerfile .
+
+push: 
+	docker push kofeebrian/grpc-kvs-storage:${tag} &
+	docker push kofeebrian/grpc-kvs-frontend:${tag} &
+	docker push kofeebrian/grpc-kvs-client:${tag}
 
 gen:
 	protoc --proto_path=proto proto/*.proto --go_out=plugins=grpc:.

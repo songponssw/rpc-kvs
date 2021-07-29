@@ -78,12 +78,6 @@ func NewKVS() *KVS {
 // notifications. If there is an issue with connecting, this should return
 // an appropriate err value, otherwise err should be set to nil.
 func (d *KVS) Initialize(clientId string, frontEndAddr string, chCapacity uint) (NotifyChannel, error) {
-	// dial
-	// rpcClient, err := rpc.DialHTTP("tcp", frontEndAddr)
-	// if err != nil {
-	// 	return nil, errors.New("cannot established connection with RPC server")
-	// }
-	// d.rpcClient = rpcClient
 	d.OpId = 0
 
 	d.ClientId = KvslibBegin{clientId}
@@ -108,25 +102,6 @@ func (d *KVS) Initialize(clientId string, frontEndAddr string, chCapacity uint) 
 // the client when it wants to get value for a key.
 func (d *KVS) Get(clientId string, key string) (uint32, error) {
 	d.OpId++
-	// args := KvslibGet{d.ClientId.ClientId, d.OpId, key}
-	// reply := new(ResultStruct) // This shoulbe GetResult Struct???
-
-	// funcCall := d.rpcClient.Go("ClientInterface.Get", args, &reply, nil)
-	// replyCall := <-funcCall.Done
-
-	// Log result using Trancer???
-	// log.Print(*reply.Result)
-	// reply.OpId = d.OpId
-	// d.notifyCh <- *reply
-	// log.Print(d.notifyCh)
-
-	// log.Print("added to channel")
-
-	// if replyCall.Error != nil {
-	// 	return d.OpId, errors.New("key not found")
-	// }
-
-	// Should return OpId or error
 	
 	client := pb.NewFrontendClient(d.grpcClientConn)
 
@@ -157,26 +132,6 @@ func (d *KVS) Get(clientId string, key string) (uint32, error) {
 // key and value pair.
 func (d *KVS) Put(clientId string, key string, value string, delay int) (uint32, error) {
 	d.OpId++ 
-	// args := KvslibPut{d.ClientId.ClientId, d.OpId, key, value, delay}
-	// log.Print(args.Delay)
-	// reply := new(ResultStruct)
-	// funcCall := d.rpcClient.Go("ClientInterface.Put", args, &reply, nil)
-	// replyCall := <-funcCall.Done
-
-	// log.Print(*reply.Result)
-
-	// reply.OpId = d.OpId
-	// d.notifyCh <- *reply
-	// log.Print(d.notifyCh)
-
-	//Hanle key not Fond : storage will create the new
-	// if replyCall.Error != nil {
-	// 	return d.OpId, errors.New("key not found")
-	// }
-
-	// d.notifyCh <- *reply
-	// log.Printf("add %s to channel", *reply.Result)
-	//Handle update key
 
 	// --- GRPC VERSION ---
 	client := pb.NewFrontendClient(d.grpcClientConn)
