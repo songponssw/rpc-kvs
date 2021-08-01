@@ -1,27 +1,37 @@
-.PHONY: storage frontend client tracing-server config-gen clean docker-storage docker-frontend docker-tracing-server
+.PHONY: storage frontend client config-gen clean
 
-all: storage frontend client tracing-server
+all: storage frontend client 
 
 storage:
 	go build -o storage cmd/storage/main.go
 
+frontend-interface:
+	go build -o frontend-interface cmd/frontend-interface/main.go
+
 frontend:
 	go build -o frontend cmd/frontend/main.go
+
+client-interface:
+	go build -o client-interface cmd/client-interface/main.go
 
 client:
 	go build -o client cmd/client/main.go
 
-tracing-server:
-	go build -o tracing-server cmd/tracing-server/main.go
-
 clean:
-	rm storage frontend client tracing-server *".log" *"-Log.txt" 2> /dev/null || true
+	rm storage frontend client mem || true
 
-docker-storage:
-	docker build --progress plain --build-arg config="storage_config.k8s.json" -t kofeebrian/kvs-storage:k8s -f cmd/storage/Dockerfile .
+images: 
+	docker build -t kofeebrian/grpc-kvs-storage:${tag} -f cmd/storage/Dockerfile . & 
+	docker build -t kofeebrian/grpc-kvs-frontend:${tag} -f cmd/frontend/Dockerfile . &
+	docker build -t kofeebrian/grpc-kvs-client:${tag} -f cmd/client/Dockerfile .
 
-docker-frontend:
-	docker build --progress plain --build-arg config="frontend_config.k8s.json" -t kofeebrian/kvs-frontend:k8s -f cmd/frontend/Dockerfile .
+push: 
+	docker push kofeebrian/grpc-kvs-storage:${tag} &
+	docker push kofeebrian/grpc-kvs-frontend:${tag} &
+	docker push kofeebrian/grpc-kvs-client:${tag}
 
-docker-tracing-server:
-	docker build --progress plain --build-arg config="tracing_server_config.k8s.json" -t kofeebrian/kvs-tracing-server:k8s -f cmd/tracing-server/Dockerfile .
+gen:
+	protoc --proto_path=proto proto/*.proto --go_out=plugins=grpc:.
+
+clean-gen:
+	rm -rf pb/*.go

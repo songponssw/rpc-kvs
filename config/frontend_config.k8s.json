@@ -1,6 +1,0 @@
-{
-	"ClientAPIListenAddr": ":8000",
-	"StorageAPIListenAddr": "st-svc.default.svc.cluster.local:80",
-	"TracerServerAddr": "trc-svc.default.svc.cluster.local:80",
-	"TracerSecret": ""
-}

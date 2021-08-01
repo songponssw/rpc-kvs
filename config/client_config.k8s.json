@@ -1,6 +1,0 @@
-{
-	"ClientID": "client1",
-	"FrontEndAddr": "fe-get-svc.default.svc.cluster.local:80",
-	"TracerServerAddr": "trc-svc.default.svc.cluster.local:80",
-	"TracerSecret": ""
-}

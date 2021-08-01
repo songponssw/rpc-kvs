@@ -1,8 +1,6 @@
 {
 	"StorageID": "storage1",
 	"StorageAdd": ":8011",
-	"FrontEndAddr": ":8001",
-	"TracerServerAddr": ":6666",
-	"TracerSecret": "",
+	"FrontEndAddr": ":50051",
 	"DiskPath": "/rpc-kvs/data"
 }
