@@ -18,10 +18,3 @@ spec:
               value: "50051"
             - name: GUEST_IMAGE
               value: "docker.io/kofeebrian/kvs:0.0.3-monolith" # frontend + storage
-      #     volumeMounts:
-      #       - mountPath: /config
-      #         name: kvs-config
-      # volumes:
-      #   - name: kvs-config
-      #     configMap:
-      #       name: kvs-config
