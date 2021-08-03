@@ -109,7 +109,7 @@ func (f *FrontEnd) HandleGet(
 	replyCall := <-funcCall.Done
 
 	if replyCall.Error != nil {
-		return nil, errors.New("FE to Strage fail")
+		return nil, errors.New("FE to Storage fail")
 	}
 
 	log.Printf("OpId: %d Get value %s from %s", req.OpId, *storageReply.Value, req.Key)
@@ -135,7 +135,7 @@ func (f *FrontEnd) HandlePut(
 			OpId: req.OpId,
 			StorageFail: true,
 			Result: "",
-		}, errors.New("FE to Strage fail")
+		}, errors.New("FE to Storage fail")
 	}
 
 	log.Printf("OpId: %d Put value %s to %s", req.OpId, *storageReply, req.Key)

@@ -1,6 +1,6 @@
 {
 	"StorageID": "storage1",
 	"StorageAdd": ":8011",
-	"FrontEndAddr": ":50051",
+	"FrontEndAddr": ":8001",
 	"DiskPath": "/rpc-kvs/data"
 }

@@ -1,4 +1,4 @@
 {
 	"ClientAPIListenAddr": ":50051",
-	"StorageAPIListenAddr": "storage-grpc.default.svc.cluster.local:80"
+	"StorageAPIListenAddr": ":8001"
 }

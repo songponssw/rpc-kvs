@@ -18,7 +18,8 @@ client:
 	go build -o client cmd/client/main.go
 
 clean:
-	rm storage frontend client mem || true
+	rm storage frontend client || true
+	rm -R rpc-kvs/ || true
 
 images: 
 	docker build -t kofeebrian/grpc-kvs-storage:${tag} -f cmd/storage/Dockerfile . & 

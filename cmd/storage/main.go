@@ -90,15 +90,19 @@ func (*Storage) Start(frontEndAddr string, storageAddr string, diskPath string) 
 func (*Storage) StorageGet(args StorageGet, reply *StorageGetResult) error {
 	ret := StorageGetResult{}
 
-	if _, err := os.Stat("mem"); os.IsNotExist(err) {
-		_, err := os.Create("mem")
+	if _, err := os.Stat("rpc-kvs/data/mem"); os.IsNotExist(err) {
+		err := os.MkdirAll("rpc-kvs/data", os.ModePerm)
+		if err != nil {
+			panic(err)
+		}
+		_, err = os.Create("rpc-kvs/data/mem")
 		if err != nil {
 			panic(err)
 		}
 	}
 
 	data := make([]byte, 10000000)
-	file, err := os.Open("mem")
+	file, err := os.Open("rpc-kvs/data/mem")
 	if err != nil {
 		log.Println(err)
 	}
@@ -159,13 +163,17 @@ func (*Storage) StoragePut(args StoragePut, reply *string) error {
 		log.Print("delay for 5 second")
 		time.Sleep(5 * time.Second)
 	} else {
-		if _, err := os.Stat("mem"); os.IsNotExist(err) {
-			_, err := os.Create("mem")
+		if _, err := os.Stat("rpc-kvs/data/mem"); os.IsNotExist(err) {
+			err := os.MkdirAll("rpc-kvs/data", os.ModePerm)
+			if err != nil {
+				panic(err)
+			}
+			_, err = os.Create("rpc-kvs/data/mem")
 			if err != nil {
 				panic(err)
 			}
 		}
-		file, err := os.OpenFile("mem", os.O_APPEND|os.O_WRONLY, 0644)
+		file, err := os.OpenFile("rpc-kvs/data/mem", os.O_APPEND|os.O_WRONLY, 0644)
 		if err != nil {
 			log.Println(err)
 			s = "cannot open file"
