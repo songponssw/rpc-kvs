@@ -49,18 +49,18 @@ func (c *Client) Initialize() error {
 		log.Fatal(err)
 		return errors.New("Client Cannot be initialized")
 	}
-	
+
 	c.initialized = true
 
 	return nil
 }
 
-func (c *Client) Get(clientId string, key string) (uint32, error) {
-	return c.kvs.Get(clientId, key)
+func (c *Client) Get(reqId uint32, key string) (uint32, error) {
+	return c.kvs.Get(reqId, key)
 }
 
-func (c *Client) Put(clientId string, key string, value string, delay int) (uint32, error) {
-	return c.kvs.Put(clientId, key, value, delay)
+func (c *Client) Put(reqId uint32, key string, value string, delay int) (uint32, error) {
+	return c.kvs.Put(reqId, key, value, delay)
 }
 
 func (c *Client) Close() error {

@@ -52,9 +52,11 @@ type KvslibComplete struct {
 type NotifyChannel chan ResultStruct
 
 type ResultStruct struct {
+	ReqId       uint32
 	OpId        uint32
 	StorageFail bool
 	Result      *string
+	Timeout     bool
 }
 
 type KVS struct {
@@ -100,61 +102,99 @@ func (d *KVS) Initialize(clientId string, frontEndAddr string, chCapacity uint) 
 
 // Get is a non-blocking request from the client to the system. This call is used by
 // the client when it wants to get value for a key.
-func (d *KVS) Get(clientId string, key string) (uint32, error) {
+func (d *KVS) Get(reqId uint32, key string) (uint32, error) {
 	d.OpId++
-	
+
 	client := pb.NewFrontendClient(d.grpcClientConn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3 * time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	res, err := client.HandleGet(ctx, &pb.FrontendGetRequest{
 		ClientId: d.ClientId.ClientId,
-		OpId: d.OpId,
-		Key: key,
+		OpId:     d.OpId,
+		Key:      key,
 	})
 	if err != nil {
-		return d.OpId, errors.New("HandleGet Failed")
+		reply := new(ResultStruct)
+		reply.ReqId = reqId
+		reply.OpId = d.OpId
+		reply.Result = new(string)
+		reply.Timeout = false
+		switch err.Error() {
+		case "rpc error: code = Unknown desc = FE to Strage fail":
+			reply.StorageFail = true
+		case "rpc error: code = Unavailable desc = upstream request timeout":
+			reply.Timeout = true
+		case "rpc error: code = DeadlineExceeded desc = context deadline exceeded":
+			reply.Timeout = true
+		default:
+			log.Println(err)
+		}
+
+		d.notifyCh <- *reply
+		return reqId, errors.New("HandleGet Failed")
 	}
 
 	// convert grpc to return type: ResultStruct
 	reply := new(ResultStruct)
+	reply.ReqId = reqId
 	reply.OpId = d.OpId
 	reply.Result = &res.Result
 	reply.StorageFail = res.StorageFail
+	reply.Timeout = false
 
 	d.notifyCh <- *reply
 
-	return d.OpId, nil
+	return reqId, nil
 }
 
 // Put is a non-blocking request from the client to the system. This call is used by
 // the client when it wants to update the value of an existing key or add add a new
 // key and value pair.
-func (d *KVS) Put(clientId string, key string, value string, delay int) (uint32, error) {
-	d.OpId++ 
+func (d *KVS) Put(reqId uint32, key string, value string, delay int) (uint32, error) {
+	d.OpId++
 
-	// --- GRPC VERSION ---
 	client := pb.NewFrontendClient(d.grpcClientConn)
-	ctx, cancel := context.WithTimeout(context.Background(), 3 * time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	res, err := client.HandlePut(ctx, &pb.FrontendPutRequest{
 		ClientId: d.ClientId.ClientId,
-		OpId: d.OpId,
-		Key: key,
-		Value: value,
-		Delay: uint32(delay),
+		OpId:     d.OpId,
+		Key:      key,
+		Value:    value,
+		Delay:    uint32(delay),
 	})
 	if err != nil {
-		return d.OpId, errors.New("HandlePut Failed")
+		reply := new(ResultStruct)
+		reply.ReqId = reqId
+		reply.OpId = d.OpId
+		reply.Result = new(string)
+		reply.Timeout = false
+		switch err.Error() {
+		case "rpc error: code = Unknown desc = FE to Strage fail":
+			reply.StorageFail = true
+		case "rpc error: code = Unavailable desc = upstream request timeout":
+			reply.Timeout = true
+		case "rpc error: code = DeadlineExceeded desc = context deadline exceeded":
+			reply.Timeout = true
+		default:
+			log.Println(err)
+		}
+
+		d.notifyCh <- *reply
+
+		return reqId, errors.New("HandlePut Failed")
 	}
 
 	reply := new(ResultStruct)
+	reply.ReqId = reqId
 	reply.OpId = d.OpId
 	reply.StorageFail = res.StorageFail
 	reply.Result = &res.Result
+	reply.Timeout = false
 	d.notifyCh <- *reply
 
-	return d.OpId, nil
+	return reqId, nil
 }
 
 // Close Stops the KVS instance from communicating with the frontend and
@@ -162,10 +202,6 @@ func (d *KVS) Put(clientId string, key string, value string, delay int) (uint32,
 // with stopping, this should return an appropriate err value, otherwise err
 // should be set to nil.
 func (d *KVS) Close() error {
-	// err := d.rpcClient.Close()
-	// if err != nil {
-	// 	return errors.New(err.Error())
-	// }
 	err := d.grpcClientConn.Close()
 	if err != nil {
 		return errors.New(err.Error())

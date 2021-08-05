@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"strconv"
 	"time"
@@ -37,13 +36,13 @@ func main() {
 	// // log.Printf("PASS: client Initialize()")
 	// defer client.Close()
 
-	// if _, err := client.Get("clientID1", "k0"); err != nil {
+	// if _, err := client.Get(123, "k0"); err != nil {
 	// 	log.Print("errororor")
 	// 	log.Println(err)
 	// }
 
 	// // log.Printf("PASS: client Get")
-	// if _, err := client.Put("clientID1", "k99", "editValue", 99); err != nil {
+	// if _, err := client.Put(123, "k99", "editValue", 99); err != nil {
 	// 	log.Print("errororor2")
 	// 	log.Println(err)
 	// }
@@ -66,7 +65,7 @@ func GetAll() {
 	}
 	for i := 0; i < 10; i++ {
 		k := "k" + strconv.Itoa(i)
-		client.Get("clientID1", k)
+		client.Get(123, k)
 	}
 
 	for i := 0; i < 10; i++ {
@@ -84,7 +83,7 @@ func SimpleEdit() {
 
 	for i := 0; i < 5; i++ {
 		k := "k" + strconv.Itoa(i)
-		client.Get("clientID1", k)
+		client.Get(123, k)
 	}
 
 	for i := 0; i < 5; i++ {
@@ -97,7 +96,7 @@ func SimpleEdit() {
 	for i := 0; i < 5; i++ {
 		k := "k" + strconv.Itoa(i)
 		v := strconv.Itoa(i + 10)
-		client.Put("clientID1", k, v, 0)
+		client.Put(123, k, v, 0)
 	}
 
 	for i := 0; i < 5; i++ {
@@ -109,7 +108,7 @@ func SimpleEdit() {
 
 	// for i := 0; i < 5; i++ {
 	// 	k := "k" + strconv.Itoa(i)
-	// 	client.Get("clientID1", k)
+	// 	client.Get(123, k)
 	// }
 
 	// for i := 5; i < 10; i++ {
@@ -121,71 +120,71 @@ func SimpleEdit() {
 
 }
 
-func DelayPut() {
+// func DelayPut() {
 
-	client1 := distkvs.NewClient(config, kvslib.NewKVS())
-	if err := client1.Initialize(); err != nil {
-		log.Fatal(err)
-	}
-	client2 := distkvs.NewClient(config, kvslib.NewKVS())
-	if err := client2.Initialize(); err != nil {
-		log.Fatal(err)
-	}
+// 	client1 := distkvs.NewClient(config, kvslib.NewKVS())
+// 	if err := client1.Initialize(); err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	client2 := distkvs.NewClient(config, kvslib.NewKVS())
+// 	if err := client2.Initialize(); err != nil {
+// 		log.Fatal(err)
+// 	}
 
-	if _, err := client1.Get("client1", "k99"); err != nil {
-		log.Println(err)
-	}
+// 	if _, err := client1.Get("client1", "k99"); err != nil {
+// 		log.Println(err)
+// 	}
 
-	if _, err := client2.Put("client2", "k99", "editValue", 99); err != nil {
-		log.Print("errororor2")
-		log.Println(err)
-	}
+// 	if _, err := client2.Put("client2", "k99", "editValue", 99); err != nil {
+// 		log.Print("errororor2")
+// 		log.Println(err)
+// 	}
 
-	if _, err := client1.Get("client1", "k99"); err != nil {
-		log.Println(err)
-	}
+// 	if _, err := client1.Get("client1", "k99"); err != nil {
+// 		log.Println(err)
+// 	}
 
-	client1.Get("clientID1", "k99")
-	client1.Get("clientID1", "ddd")
-	l := len(client1.NotifyChannel)
-	for i := 0; i < l; i++ {
-		result := <-client1.NotifyChannel
-		log.Printf("C1 Get Key %d => %s", i, *result.Result)
-	}
+// 	client1.Get(123, "k99")
+// 	client1.Get(123, "ddd")
+// 	l := len(client1.NotifyChannel)
+// 	for i := 0; i < l; i++ {
+// 		result := <-client1.NotifyChannel
+// 		log.Printf("C1 Get Key %d => %s", i, *result.Result)
+// 	}
 
-	l = len(client2.NotifyChannel)
-	for i := 0; i < l; i++ {
-		result := <-client2.NotifyChannel
-		log.Printf("C2 Get Key %d => %s", i, *result.Result)
-	}
+// 	l = len(client2.NotifyChannel)
+// 	for i := 0; i < l; i++ {
+// 		result := <-client2.NotifyChannel
+// 		log.Printf("C2 Get Key %d => %s", i, *result.Result)
+// 	}
 
-}
+// }
 
-func MonotonicRead() {
-	client1 := distkvs.NewClient(config, kvslib.NewKVS())
-	if err := client1.Initialize(); err != nil {
-		log.Fatal(err)
-	}
-	client2 := distkvs.NewClient(config, kvslib.NewKVS())
-	if err := client2.Initialize(); err != nil {
-		log.Fatal(err)
-	}
+// func MonotonicRead() {
+// 	client1 := distkvs.NewClient(config, kvslib.NewKVS())
+// 	if err := client1.Initialize(); err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	client2 := distkvs.NewClient(config, kvslib.NewKVS())
+// 	if err := client2.Initialize(); err != nil {
+// 		log.Fatal(err)
+// 	}
 
-	client1.Get("clientID1", "k99")
-	go client2.Put("client2", "k99", "Update", 0)
-	client1.Get("clientID1", "k99")
-	time.Sleep(8 * time.Second)
+// 	client1.Get(123, "k99")
+// 	go client2.Put("client2", "k99", "Update", 0)
+// 	client1.Get(123, "k99")
+// 	time.Sleep(8 * time.Second)
 
-	fmt.Print("enddd")
-	l := len(client1.NotifyChannel)
-	for i := 0; i < l; i++ {
-		result := <-client1.NotifyChannel
-		log.Printf("C1 Get Key %d => %s", i, *result.Result)
-	}
+// 	fmt.Print("enddd")
+// 	l := len(client1.NotifyChannel)
+// 	for i := 0; i < l; i++ {
+// 		result := <-client1.NotifyChannel
+// 		log.Printf("C1 Get Key %d => %s", i, *result.Result)
+// 	}
 
-	l = len(client2.NotifyChannel)
-	for i := 0; i < l; i++ {
-		result := <-client2.NotifyChannel
-		log.Printf("C2 Get Key %d => %s", i, *result.Result)
-	}
-}
+// 	l = len(client2.NotifyChannel)
+// 	for i := 0; i < l; i++ {
+// 		result := <-client2.NotifyChannel
+// 		log.Printf("C2 Get Key %d => %s", i, *result.Result)
+// 	}
+// }
