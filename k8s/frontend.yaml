@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-get
+spec:
+  selector:
+    matchLabels:
+      app: fe-get
+  template:
+    metadata:
+      labels:
+        app: fe-get
+    spec:
+      containers:
+        - name: frontend-get
+          image: docker.io/kofeebrian/kvs-frontend:k8s
+          imagePullPolicy: Never
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+          ports:
+            - containerPort: 8000
+          volumeMounts:
+            - mountPath: /config
+              name: frontend-config
+      volumes:
+        - name: frontend-config
+          configMap:
+            name: frontend-config

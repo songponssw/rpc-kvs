@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: client-job
+spec:
+  parallelism: 1
+  ttlSecondsAfterFinished: 100
+  template:
+    spec:
+      containers:
+        - name: client-container
+          image: docker.io/kofeebrian/client:monolith
+          imagePullPolicy: Always
+          volumeMounts:
+            - mountPath: /config
+              name: client-config
+      restartPolicy: Never
+      volumes:
+        - name: client-config
+          configMap:
+            name: client-config

@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: storage
+spec:
+  selector:
+    matchLabels:
+      app: st
+  template:
+    metadata:
+      labels:
+        app: st
+    spec:
+      containers:
+        - name: storage
+          image: docker.io/kofeebrian/kvs-storage:k8s
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+          ports:
+            - containerPort: 8001
+          volumeMounts:
+            - mountPath: /rpc-kvs/data
+              name: kvs-storage
+            - mountPath: /config
+              name: storage-config
+      volumes:
+        - name: kvs-storage
+          hostPath:
+            path: /rpc-kvs/data
+        - name: storage-config
+          configMap:
+            name: storage-config

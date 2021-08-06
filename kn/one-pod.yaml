@@ -1,0 +1,90 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kvs-config
+data:
+  client_config.json: |
+    {
+        "ClientID": "client1",
+        "FrontEndAddr": ":8000",
+        "TracerServerAddr": ":6666",
+        "TracerSecret": ""
+    }
+  frontend_config.json: |
+    {
+        "ClientAPIListenAddr": ":8000",
+        "StorageAPIListenAddr": ":8001",
+        "TracerServerAddr": ":6666",
+        "TracerSecret": ""
+    }
+  storage_config.json: |
+    {
+      "StorageID": "storage1",
+      "StorageAdd": ":8011",
+      "FrontEndAddr": ":8001",
+      "TracerServerAddr": ":6666",
+      "TracerSecret": "",
+      "DiskPath": "/rpc-kvs/data"
+    }
+  tracing_server_config.json: |
+    {
+        "ServerBind": ":6666",
+        "Secret": "",
+        "OutputFile": "trace_output.log",
+        "ShivizOutputFile": "shiviz_output.log"
+    }
+---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: app
+spec:
+  template:
+    metadata:
+      name: app-kvs
+    spec:
+      containers:
+        - name: kvs-tracing-server
+          image: docker.io/kofeebrian/kvs-tracing-server:k8s
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+          volumeMounts:
+            - mountPath: /config
+              subPath: tracing_server_config.json
+              name: kvs-config
+              readOnly: true
+        - name: kvs-storage
+          image: docker.io/kofeebrian/kvs-storage:k8s
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+          volumeMounts:
+            - mountPath: /config
+              subPath: storage_config.json
+              name: kvs-config
+              readOnly: true
+        - name: kvs-frontend
+          image: docker.io/kofeebrian/kvs-frontend:k8s
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+          ports:
+            - containerPort: 8000
+          volumeMounts:
+            - mountPath: /config
+              subPath: frontend_config.json
+              name: kvs-config
+              readOnly: true
+      volumes:
+        - name: kvs-config
+          configMap:
+            name: kvs-config
+---
+
