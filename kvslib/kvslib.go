@@ -105,8 +105,10 @@ func (d *KVS) Initialize(clientId string, frontEndAddr string, chCapacity uint) 
 func (d *KVS) Get(reqId uint32, key string) (uint32, error) {
 	d.OpId++
 
+	// Create gRPC Client
 	client := pb.NewFrontendClient(d.grpcClientConn)
 
+	// Create context - there's many options that can config here
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	res, err := client.HandleGet(ctx, &pb.FrontendGetRequest{
@@ -120,6 +122,7 @@ func (d *KVS) Get(reqId uint32, key string) (uint32, error) {
 		reply.OpId = d.OpId
 		reply.Result = new(string)
 		reply.Timeout = false
+		// TODO: more efficient error handling
 		switch err.Error() {
 		case "rpc error: code = Unknown desc = FE to Strage fail":
 			reply.StorageFail = true

@@ -5,14 +5,8 @@ all: storage frontend client
 storage:
 	go build -o storage cmd/storage/main.go
 
-frontend-interface:
-	go build -o frontend-interface cmd/frontend-interface/main.go
-
 frontend:
 	go build -o frontend cmd/frontend/main.go
-
-client-interface:
-	go build -o client-interface cmd/client-interface/main.go
 
 client:
 	go build -o client cmd/client/main.go
