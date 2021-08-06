@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  name: kvs-ingress
+  namespace: default
+  labels:
+    name: kvs-ingress
+spec:
+  rules:
+    # TODO: seperate endpoints for each get and put request
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: fe-get-svc
+                port:
+                  number: 80

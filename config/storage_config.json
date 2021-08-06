@@ -1,8 +1,6 @@
 {
-  "StorageID": "storage1",
-  "StorageAdd": ":8011",
-  "FrontEndAddr": ":8001",
-  "TracerServerAddr": ":6666",
-  "TracerSecret": "",
-  "DiskPath" : "/home/boss/database-kvs/assignment-5/data"
+	"StorageID": "storage1",
+	"StorageAdd": ":8011",
+	"FrontEndAddr": ":8001",
+	"DiskPath": "/rpc-kvs/data"
 }

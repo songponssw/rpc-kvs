@@ -1,0 +1,36 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fe-get-svc
+  namespace: default
+spec:
+  selector:
+    app: fe-get
+  ports:
+    - port: 80
+      targetPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: st-svc
+  namespace: default
+spec:
+  selector:
+    app: st
+  ports:
+    - port: 80
+      targetPort: 8001
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: trc-svc
+  namespace: default
+spec:
+  selector:
+    app: trc
+  ports:
+    - port: 80
+      targetPort: 6666

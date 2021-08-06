@@ -3,12 +3,15 @@
 package kvslib
 
 import (
+	"context"
 	"errors"
 	"log"
-
-	"github.com/DistributedClocks/tracing"
+	"time"
 
 	"net/rpc"
+
+	"example.org/cpsc416/a5/pb"
+	"google.golang.org/grpc"
 )
 
 type KvslibBegin struct {
@@ -20,7 +23,7 @@ type KvslibPut struct {
 	OpId     uint32
 	Key      string
 	Value    string
-	delay    int
+	Delay    int
 }
 
 type KvslibGet struct {
@@ -49,9 +52,11 @@ type KvslibComplete struct {
 type NotifyChannel chan ResultStruct
 
 type ResultStruct struct {
+	ReqId       uint32
 	OpId        uint32
 	StorageFail bool
 	Result      *string
+	Timeout     bool
 }
 
 type KVS struct {
@@ -60,6 +65,7 @@ type KVS struct {
 	OpId      uint32
 	ClientId  KvslibBegin
 	// Add more KVS instance state here.
+	grpcClientConn *grpc.ClientConn
 }
 
 func NewKVS() *KVS {
@@ -73,13 +79,7 @@ func NewKVS() *KVS {
 // have capacity ChCapacity and must be used by kvslib to deliver all solution
 // notifications. If there is an issue with connecting, this should return
 // an appropriate err value, otherwise err should be set to nil.
-func (d *KVS) Initialize(localTracer *tracing.Tracer, clientId string, frontEndAddr string, chCapacity uint) (NotifyChannel, error) {
-	// dial
-	rpcClient, err := rpc.DialHTTP("tcp", frontEndAddr)
-	if err != nil {
-		return nil, errors.New("Cannot established connection with RPC server.")
-	}
-	d.rpcClient = rpcClient
+func (d *KVS) Initialize(clientId string, frontEndAddr string, chCapacity uint) (NotifyChannel, error) {
 	d.OpId = 0
 
 	d.ClientId = KvslibBegin{clientId}
@@ -87,61 +87,117 @@ func (d *KVS) Initialize(localTracer *tracing.Tracer, clientId string, frontEndA
 	notifyLocal := make(chan ResultStruct, chCapacity)
 	d.notifyCh = notifyLocal
 
+	conn, err := grpc.Dial(frontEndAddr, grpc.WithInsecure())
+	if err != nil {
+		// log error
+		log.Fatal(err)
+		return nil, errors.New("cannot connect to grpc server")
+	}
+
+	// save conn to KVS struct
+	d.grpcClientConn = conn
+
 	return d.notifyCh, nil
 }
 
 // Get is a non-blocking request from the client to the system. This call is used by
 // the client when it wants to get value for a key.
-func (d *KVS) Get(tracer *tracing.Tracer, clientId string, key string) (uint32, error) {
+func (d *KVS) Get(reqId uint32, key string) (uint32, error) {
 	d.OpId++
-	args := KvslibGet{d.ClientId.ClientId, d.OpId, key}
-	reply := new(ResultStruct) // This shoulbe GetResult Struct???
 
-	funcCall := d.rpcClient.Go("FrontEnd.HandleGet", args, &reply, nil)
-	replyCall := <-funcCall.Done
+	// Create gRPC Client
+	client := pb.NewFrontendClient(d.grpcClientConn)
 
-	// Log result using Trancer???
-	// log.Print(*reply.Result)
-	reply.OpId = d.OpId
-	d.notifyCh <- *reply
-	// log.Print(d.notifyCh)
+	// Create context - there's many options that can config here
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	res, err := client.HandleGet(ctx, &pb.FrontendGetRequest{
+		ClientId: d.ClientId.ClientId,
+		OpId:     d.OpId,
+		Key:      key,
+	})
+	if err != nil {
+		reply := new(ResultStruct)
+		reply.ReqId = reqId
+		reply.OpId = d.OpId
+		reply.Result = new(string)
+		reply.Timeout = false
+		// TODO: more efficient error handling
+		switch err.Error() {
+		case "rpc error: code = Unknown desc = FE to Strage fail":
+			reply.StorageFail = true
+		case "rpc error: code = Unavailable desc = upstream request timeout":
+			reply.Timeout = true
+		case "rpc error: code = DeadlineExceeded desc = context deadline exceeded":
+			reply.Timeout = true
+		default:
+			log.Println(err)
+		}
 
-	// log.Print("added to channel")
-
-	if replyCall.Error != nil {
-		return d.OpId, errors.New("key not found")
+		d.notifyCh <- *reply
+		return reqId, errors.New("HandleGet Failed")
 	}
 
-	// Should return OpId or error
-	return d.OpId, nil
+	// convert grpc to return type: ResultStruct
+	reply := new(ResultStruct)
+	reply.ReqId = reqId
+	reply.OpId = d.OpId
+	reply.Result = &res.Result
+	reply.StorageFail = res.StorageFail
+	reply.Timeout = false
+
+	d.notifyCh <- *reply
+
+	return reqId, nil
 }
 
 // Put is a non-blocking request from the client to the system. This call is used by
 // the client when it wants to update the value of an existing key or add add a new
 // key and value pair.
-func (d *KVS) Put(tracer *tracing.Tracer, clientId string, key string, value string, delay int) (uint32, error) {
-	d.OpId += 1
-	args := KvslibPut{d.ClientId.ClientId, d.OpId, key, value, delay}
-	log.Print(args.delay)
-	reply := new(ResultStruct)
-	funcCall := d.rpcClient.Go("FrontEnd.HandlePut", args, &reply, nil)
-	replyCall := <-funcCall.Done
+func (d *KVS) Put(reqId uint32, key string, value string, delay int) (uint32, error) {
+	d.OpId++
 
-	// log.Print(*reply.Result)
+	client := pb.NewFrontendClient(d.grpcClientConn)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	res, err := client.HandlePut(ctx, &pb.FrontendPutRequest{
+		ClientId: d.ClientId.ClientId,
+		OpId:     d.OpId,
+		Key:      key,
+		Value:    value,
+		Delay:    uint32(delay),
+	})
+	if err != nil {
+		reply := new(ResultStruct)
+		reply.ReqId = reqId
+		reply.OpId = d.OpId
+		reply.Result = new(string)
+		reply.Timeout = false
+		switch err.Error() {
+		case "rpc error: code = Unknown desc = FE to Strage fail":
+			reply.StorageFail = true
+		case "rpc error: code = Unavailable desc = upstream request timeout":
+			reply.Timeout = true
+		case "rpc error: code = DeadlineExceeded desc = context deadline exceeded":
+			reply.Timeout = true
+		default:
+			log.Println(err)
+		}
 
-	reply.OpId = d.OpId
-	d.notifyCh <- *reply
-	// log.Print(d.notifyCh)
+		d.notifyCh <- *reply
 
-	//Hanle key not Fond : storage will create the new
-	if replyCall.Error != nil {
-		return d.OpId, errors.New("key not found")
+		return reqId, errors.New("HandlePut Failed")
 	}
 
+	reply := new(ResultStruct)
+	reply.ReqId = reqId
+	reply.OpId = d.OpId
+	reply.StorageFail = res.StorageFail
+	reply.Result = &res.Result
+	reply.Timeout = false
 	d.notifyCh <- *reply
-	log.Printf("add %s to channel", *reply.Result)
-	//Handle update key
-	return d.OpId, nil
+
+	return reqId, nil
 }
 
 // Close Stops the KVS instance from communicating with the frontend and
@@ -149,7 +205,7 @@ func (d *KVS) Put(tracer *tracing.Tracer, clientId string, key string, value str
 // with stopping, this should return an appropriate err value, otherwise err
 // should be set to nil.
 func (d *KVS) Close() error {
-	err := d.rpcClient.Close()
+	err := d.grpcClientConn.Close()
 	if err != nil {
 		return errors.New(err.Error())
 	}
